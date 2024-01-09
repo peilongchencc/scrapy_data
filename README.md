@@ -42,9 +42,13 @@ Scrapy是一个用于爬行网站和提取结构化数据的应用程序框架�
 
 ## 安装方式:
 
+conda安装方式:<br>
+
 ```bash
 conda install -c conda-forge scrapy
 ```
+
+pip安装方式:<br>
 
 ```bash
 pip install Scrapy
