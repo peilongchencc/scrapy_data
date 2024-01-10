@@ -998,12 +998,144 @@ scrapy shell https://docs.scrapy.org/en/latest/_static/selectors-sample1.html
 
 由于我们处理的是 HTML，选择器将自动使用 HTML 解析器。<br>
 
-因此，通过查看该页面的 HTML 代码，让我们构造一个 XPath，用于选择 title 标签内的文本：<br>
+因此，通过查看该页面的 HTML 代码，让我们构造一个 XPath，用于选择 title 标签(tag)内的文本(text)：<br>
 
 ```bash
 >>> response.xpath("//title/text()")
 [<Selector query='//title/text()' data='Example website'>]
 ```
+
+要真正提取文本数据，你必须调用选择器的 `.get()` 或 `.getall()` 方法，如下所示：<br>
+
+```bash
+>>> response.xpath("//title/text()").getall()
+['Example website']
+>>> response.xpath("//title/text()").get()
+'Example website'
+```
+
+`.get()` 总是返回单个结果；**如果有多个匹配项，将返回第一个匹配项的内容；** 如果没有匹配项，则返回 None。`.getall()` 返回包含所有结果的列表。<br>
+
+请注意，CSS 选择器可以使用 CSS3 伪元素选择文本或属性节点：<br>
+
+```bash
+>>> response.css("title::text").get()
+'Example website'
+```
+
+如你所见，`.xpath()` 和 `.css()` 方法返回一个 `SelectorList` 实例，这是一个新选择器的列表。这个 API 可用于快速选择嵌套数据：<br>
+
+```bash
+>>> response.css("img").xpath("@src").getall()
+['image1_thumb.jpg',
+'image2_thumb.jpg',
+'image3_thumb.jpg',
+'image4_thumb.jpg',
+'image5_thumb.jpg']
+```
+
+如果您只想提取第一个匹配的元素，可以调用选择器的 `.get()` 方法（或其在之前 Scrapy 版本中常用的别名 `.extract_first()`）：<br>
+
+```bash
+>>> response.xpath('//div[@id="images"]/a/text()').get()
+'Name: My image 1 '
+```
+
+如果没有找到元素，它将返回 `None`：<br>
+
+```bash
+>>> response.xpath('//div[@id="not-exists"]/text()').get() is None
+True
+```
+
+可以提供一个默认的返回值作为参数，以代替 `None` 使用：<br>
+
+```bash
+>>> response.xpath('//div[@id="not-exists"]/text()').get(default="not-found")
+'not-found'
+```
+
+可以不使用例如 `'@src'` 的 **XPath**，而是通过选择器的 `.attrib` 属性来查询属性：<br>
+
+```bash
+>>> [img.attrib["src"] for img in response.css("img")]
+['image1_thumb.jpg',
+'image2_thumb.jpg',
+'image3_thumb.jpg',
+'image4_thumb.jpg',
+'image5_thumb.jpg']
+```
+
+作为一种快捷方式，`.attrib` 也可以直接在 `SelectorList` 上使用；它返回第一个匹配元素的属性：<br>
+
+```bash
+>>> response.css("img").attrib["src"]
+'image1_thumb.jpg'
+```
+
+这在只期望单个结果时最有用，例如通过 `id` 选择，或在网页上选择独特的元素时：<br>
+
+```bash
+>>> response.css("base").attrib["href"]
+'http://example.com/'
+```
+
+`<base>` 标签位于`<head>`部分：<br>
+
+```html
+<base href='http://example.com/' />
+```
+
+这个`<base>`标签为页面上的所有相对URL指定了一个基础URL。在这个例子中，基础URL被设置为`'http://example.com/'`。这意味着页面中所有相对路径的URL（如在`<a>`标签中的`href`属性）都会以这个URL作为其基础。<br>
+
+因此，在Scrapy中使用`response.css("base").attrib["href"]`能够成功地提取出`<base>`标签的`href`属性值，即`'http://example.com/'`。这在处理和构建完整的绝对URL时非常有用，特别是当页面中包含大量相对路径的链接时。<br>
+
+> `<base>`标签在HTML中是一个不常用的标签，它用于指定页面内所有相对URL的基础URL。如果HTML中没有`<base>`标签，这段代码会返回一个错误或空值，因为它试图访问不存在的元素的属性。这种情况下，使用这段代码之前检查HTML是否包含`<base>`标签是一个好习惯。
+
+
+现在我们将获取 **基础URL** 和一些 **图片链接** ：<br>
+
+```bash
+>>> response.xpath("//base/@href").get()
+'http://example.com/'
+
+>>> response.css("base::attr(href)").get()
+'http://example.com/'
+
+>>> response.css("base").attrib["href"]
+'http://example.com/'
+
+>>> response.xpath('//a[contains(@href, "image")]/@href').getall()
+['image1.html',
+'image2.html',
+'image3.html',
+'image4.html',
+'image5.html']
+
+>>> response.css("a[href*=image]::attr(href)").getall()
+['image1.html',
+'image2.html',
+'image3.html',
+'image4.html',
+'image5.html']
+
+response.xpath('//a[contains(@href, "image")]/img/@src').getall()
+['image1_thumb.jpg',
+'image2_thumb.jpg',
+'image3_thumb.jpg',
+'image4_thumb.jpg',
+'image5_thumb.jpg']
+
+response.css("a[href*=image] img::attr(src)").getall()
+['image1_thumb.jpg',
+'image2_thumb.jpg',
+'image3_thumb.jpg',
+'image4_thumb.jpg',
+'image5_thumb.jpg']
+```
+
+
+
 
 
 
