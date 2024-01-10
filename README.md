@@ -1098,34 +1098,59 @@ True
 ```bash
 >>> response.xpath("//base/@href").get()
 'http://example.com/'
+```
 
+代码详解：<br>
+
+1. `response`: 这是Scrapy中的一个响应对象，代表了爬虫下载的页面。
+
+2. `.xpath("//base/@href")`: 这是一个XPath选择器。XPath是一种在XML和HTML文档中查找信息的语言。这里的`//base/@href`意味着查找所有`<base>`标签的`href`属性。具体来说，`//`表示选择文档中所有符合条件的节点，`base`是HTML中的一个特定标签，而`@href`表示选择这个标签的`href`属性。
+
+3. `.get()`: 这个方法用于获取XPath选择器找到的第一个匹配项的数据。
+
+综上所述，这行代码的作用是从下载的网页中找出第一个`<base>`标签的`href`属性值。在这个示例中，返回的结果是`'http://example.com/'`，这意味着在爬取的页面中，`<base>`标签的`href`属性被设置为`http://example.com/`。这通常用于解析网页的基础URL或根URL。<br>
+
+
+我在使用scrapy时，见到了以下代码，请告诉我以下代码是什么含义？
+
+```bash
 >>> response.css("base::attr(href)").get()
 'http://example.com/'
+```
 
+```bash
 >>> response.css("base").attrib["href"]
 'http://example.com/'
+```
 
+```bash
 >>> response.xpath('//a[contains(@href, "image")]/@href').getall()
 ['image1.html',
 'image2.html',
 'image3.html',
 'image4.html',
 'image5.html']
+```
 
+```bash
 >>> response.css("a[href*=image]::attr(href)").getall()
 ['image1.html',
 'image2.html',
 'image3.html',
 'image4.html',
 'image5.html']
+```
 
+```bash
 response.xpath('//a[contains(@href, "image")]/img/@src').getall()
 ['image1_thumb.jpg',
 'image2_thumb.jpg',
 'image3_thumb.jpg',
 'image4_thumb.jpg',
 'image5_thumb.jpg']
+```
 
+```bash
 response.css("a[href*=image] img::attr(src)").getall()
 ['image1_thumb.jpg',
 'image2_thumb.jpg',
