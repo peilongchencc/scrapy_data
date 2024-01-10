@@ -23,6 +23,10 @@
     - [使用spider参数(Using spider arguments):](#使用spider参数using-spider-arguments)
     - [下一步(Next steps):](#下一步next-steps)
   - [示例(Examples):](#示例examples)
+  - [选择器(Selectors):](#选择器selectors)
+    - [使用选择器(Using selectors):](#使用选择器using-selectors)
+      - [构造选择器(Constructing selectors):](#构造选择器constructing-selectors)
+    - [使用选择器(Using selectors):](#使用选择器using-selectors-1)
   - [html中的 `href` 是什么？](#html中的-href-是什么)
   - [scrapy进行爬虫时，为什么使用yield关键字？](#scrapy进行爬虫时为什么使用yield关键字)
   - [在爬虫中，CSS和XPath是什么关系？](#在爬虫中css和xpath是什么关系)
@@ -892,6 +896,114 @@ class QuotesSpider(scrapy.Spider):
 
 如果你熟悉 git，你可以检查代码。否则，你可以通过点击 [这里](https://github.com/scrapy/quotesbot/archive/master.zip) 下载项目的 zip 文件。<br>
 
+
+## 选择器(Selectors):
+
+在进行网页抓取时，你**最常需要执行的任务是从HTML源代码中提取数据**。有几个库可用于实现这一目标，例如：<br>
+
+- `BeautifulSoup` 是一个在 Python 程序员中非常受欢迎的网页抓取库，它基于 HTML 代码的结构构建一个 Python 对象，并且对于糟糕的标记也处理得相当不错，但**它有一个缺点：速度慢。🚨**
+
+- `lxml` 是一个基于 `ElementTree` 的具有 pythonic API 的 **XML 解析库（也可解析 HTML）**。（lxml 不是 Python 标准库的一部分。）
+
+Scrapy 自带了提取数据的机制。它们被称为选择器，因为它们通过 `XPath` 或 `CSS` 表达式 “选择” HTML 文档中的特定部分。<br>
+
+XPath 是一种用于选择 XML 文档中节点的语言，也可用于 HTML。CSS 是一种应用于 HTML 文档的样式语言。它定义了选择器，将这些样式与特定的 HTML 元素相关联。<br>
+
+⚠️注意:<br>
+
+Scrapy 选择器是围绕 parsel 库的一个薄包装层；这个包装层的目的是为了更好地与 Scrapy 响应对象集成。<br>
+
+parsel 是一个独立的网页抓取库，可以在不使用 Scrapy 的情况下使用。它在底层使用 lxml 库，并在 lxml API 之上实现了一个简单的 API。这意味着 Scrapy 选择器在速度和解析准确性上与 lxml 非常相似。<br>
+
+### 使用选择器(Using selectors):
+
+#### 构造选择器(Constructing selectors):
+
+`Response` 对象在 `.selector` 属性上暴露了一个 Selector 实例：<br>
+
+```bash
+>>> response.selector.xpath("//span/text()").get()
+'good'
+```
+
+使用 XPath 和 CSS 查询响应(Querying responses)是非常常见的，因此响应(responses)还包括了两个更便捷的快捷方式：`response.xpath()` 和 `response.css()`：<br>
+
+```bash
+>>> response.xpath("//span/text()").get()
+'good'
+>>> response.css("span::text").get()
+'good'
+```
+
+Scrapy 选择器是通过传递 `TextResponse` 对象或标记（作为字符串，在 text 参数中）来构建的 Selector 类的实例。<br>
+
+通常不需要手动构建 Scrapy 选择器：在 Spider 回调中可以使用 `response` (响应)对象，因此在大多数情况下，使用 `response.css()` 和 `response.xpath()` 这些快捷方式更为方便。通过使用 `response.selector` 或这些快捷方式，你还可以确保响应体只被解析一次。<br>
+
+但如果需要，也可以直接使用 `Selector`。从文本构建：<br>
+
+```bash
+>>> from scrapy.selector import Selector
+>>> body = "<html><body><span>good</span></body></html>"
+>>> Selector(text=body).xpath("//span/text()").get()
+'good'
+```
+
+从response(响应)构建 - `HtmlResponse` 是 `TextResponse` 子类之一：<br>
+
+```bash
+>>> from scrapy.selector import Selector
+>>> from scrapy.http import HtmlResponse
+>>> response = HtmlResponse(url="http://example.com", body=body, encoding="utf-8")
+>>> Selector(response=response).xpath("//span/text()").get()
+'good'
+```
+
+`Selector` (选择器)会根据输入类型自动选择最佳的解析规则（XML 对比 HTML）。<br>
+
+### 使用选择器(Using selectors):
+
+为了解释如何使用选择器，我们将使用 `Scrapy shell`（它提供了交互式测试）和位于 Scrapy 文档服务器上的一个示例页面：<br>
+
+- https://docs.scrapy.org/en/latest/_static/selectors-sample1.html
+
+为了完整性，这里是它的完整 HTML 代码：<br>
+
+```html
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <base href='http://example.com/' />
+    <title>Example website</title>
+  </head>
+  <body>
+    <div id='images'>
+      <a href='image1.html'>Name: My image 1 <br /><img src='image1_thumb.jpg' alt='image1'/></a>
+      <a href='image2.html'>Name: My image 2 <br /><img src='image2_thumb.jpg' alt='image2'/></a>
+      <a href='image3.html'>Name: My image 3 <br /><img src='image3_thumb.jpg' alt='image3'/></a>
+      <a href='image4.html'>Name: My image 4 <br /><img src='image4_thumb.jpg' alt='image4'/></a>
+      <a href='image5.html'>Name: My image 5 <br /><img src='image5_thumb.jpg' alt='image5'/></a>
+    </div>
+  </body>
+</html>
+```
+
+首先，让我们打开 shell：<br>
+
+```bash
+scrapy shell https://docs.scrapy.org/en/latest/_static/selectors-sample1.html
+```
+
+然后，在 shell 加载后，你将在 `response shell` 变量中拥有可用的 `response` (响应)，并且其附加的选择器位于 `response.selector` 属性中。<br>
+
+由于我们处理的是 HTML，选择器将自动使用 HTML 解析器。<br>
+
+因此，通过查看该页面的 HTML 代码，让我们构造一个 XPath，用于选择 title 标签内的文本：<br>
+
+```bash
+>>> response.xpath("//title/text()")
+[<Selector query='//title/text()' data='Example website'>]
+```
 
 
 
