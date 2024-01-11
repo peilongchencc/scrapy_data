@@ -1429,6 +1429,7 @@ exists. Use ``default=''`` if you always want a string:
 > 6块 --> 10块赚4块，10块 --> 8块亏2块。
 
 第一个人： 4x(250+100)-2x100
+
 第二个人： 4x250
 
 
