@@ -26,9 +26,9 @@
   - [选择器(Selectors):](#选择器selectors)
     - [使用选择器(Using selectors):](#使用选择器using-selectors)
       - [构造选择器(Constructing selectors):](#构造选择器constructing-selectors)
-    - [使用选择器(Using selectors):](#使用选择器using-selectors-1)
-    - [拓展-XPath语法解释:](#拓展-xpath语法解释)
-    - [拓展--"::" 选择 "伪元素" :](#拓展---选择-伪元素-)
+      - [使用选择器(Using selectors):](#使用选择器using-selectors-1)
+      - [拓展-XPath语法解释:](#拓展-xpath语法解释)
+      - [拓展--"::" 选择 "伪元素" :](#拓展---选择-伪元素-)
     - [CSS 选择器的扩展(Extensions to CSS Selectors):](#css-选择器的扩展extensions-to-css-selectors)
   - [html中的 `href` 是什么？](#html中的-href-是什么)
   - [scrapy进行爬虫时，为什么使用yield关键字？](#scrapy进行爬虫时为什么使用yield关键字)
@@ -963,7 +963,7 @@ Scrapy 选择器是通过传递 `TextResponse` 对象或标记（作为字符串
 
 `Selector` (选择器)会根据输入类型自动选择最佳的解析规则（XML 对比 HTML）。<br>
 
-### 使用选择器(Using selectors):
+#### 使用选择器(Using selectors):
 
 为了解释如何使用选择器，我们将使用 `Scrapy shell`（它提供了交互式测试）和位于 Scrapy 文档服务器上的一个示例页面：<br>
 
@@ -1196,7 +1196,7 @@ response.xpath('//a[contains(@href, "image")]/img/@src').getall()
 'image5_thumb.jpg']
 ```
 
-### 拓展-XPath语法解释:
+#### 拓展-XPath语法解释:
 
 ```bash
 response.xpath('//a[contains(@href, "image")]/img/@src').getall()
@@ -1258,7 +1258,7 @@ response.css("a[href*=image] img::attr(src)").getall()
 所以，在你的Scrapy代码示例 `response.css("a[href*=image] img::attr(src)").getall()` 中，它首先选择所有`href`属性中包含"image"的`<a>`元素，然后在这些`<a>`元素中选择`<img>`元素，并提取这些`<img>`元素的`src`属性值。
 
 
-### 拓展--"::" 选择 "伪元素" :
+#### 拓展--"::" 选择 "伪元素" :
 
 理解伪元素的概念对于掌握CSS选择器非常重要。伪元素是CSS的一个特性，它用于**指定页面上某个元素的某个部分或者添加特定的效果**。伪元素不是HTML文档中实际定义的元素，而是CSS创建的虚拟元素，用于应用样式或选择文档中的特定内容。<br>
 
