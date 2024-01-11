@@ -27,6 +27,9 @@
     - [使用选择器(Using selectors):](#使用选择器using-selectors)
       - [构造选择器(Constructing selectors):](#构造选择器constructing-selectors)
     - [使用选择器(Using selectors):](#使用选择器using-selectors-1)
+    - [拓展-XPath语法解释:](#拓展-xpath语法解释)
+    - [拓展--"::" 选择 "伪元素" :](#拓展---选择-伪元素-)
+    - [CSS 选择器的扩展(Extensions to CSS Selectors):](#css-选择器的扩展extensions-to-css-selectors)
   - [html中的 `href` 是什么？](#html中的-href-是什么)
   - [scrapy进行爬虫时，为什么使用yield关键字？](#scrapy进行爬虫时为什么使用yield关键字)
   - [在爬虫中，CSS和XPath是什么关系？](#在爬虫中css和xpath是什么关系)
@@ -1111,12 +1114,24 @@ True
 综上所述，这行代码的作用是从下载的网页中找出第一个`<base>`标签的`href`属性值。在这个示例中，返回的结果是`'http://example.com/'`，这意味着在爬取的页面中，`<base>`标签的`href`属性被设置为`http://example.com/`。这通常用于解析网页的基础URL或根URL。<br>
 
 
-我在使用scrapy时，见到了以下代码，请告诉我以下代码是什么含义？
-
 ```bash
 >>> response.css("base::attr(href)").get()
 'http://example.com/'
 ```
+
+`response` : 是 Scrapy 框架中的一个响应对象，包含了一个网页的全部内容。<br>
+
+`.css("base::attr(href)")`: <br>
+
+- `.css("...")` 是 Scrapy 用于选择网页上元素的方法，它使用 CSS 选择器来定位元素。
+
+- `"base"` 指的是 `<base>` 标签，这是 HTML 中用于指定相对 URL 的基础路径的标签。
+
+- `"::attr(href)"` 是一个伪类选择器，用于获取该元素的 `href` 属性值。在这种情况下，它提取的是 `<base>` 标签的 `href` 属性值。
+
+`.get()`: 这个方法从选择的元素中提取出第一个匹配项的数据。如果你想获取所有匹配项，可以使用 `.getall()` 方法。<br>
+
+总的来说，这段代码的目的是提取网页中 `<base>` 标签的 `href` 属性值。在这个示例中，它返回的是 `'http://example.com/'`，这通常是用来解析页面上的相对 URL 的基础 URL。<br>
 
 ```bash
 >>> response.css("base").attrib["href"]
@@ -1132,6 +1147,16 @@ True
 'image5.html']
 ```
 
+1. `response`: 这是一个 Scrapy Response 对象，代表了一个已经爬取到的网页。
+
+2. `.xpath('//a[contains(@href, "image")]')`: 这是一个 XPath 查询。它的作用是在整个文档中查找所有 `<a>` 标签，其中的 `href` 属性包含了字符串“image”。`//` 表示在整个文档中查找，`a` 是 HTML 中用于创建链接的标签，`contains(@href, "image")` 是一个函数，用于查找 `href` 属性中包含“image”字样的 `<a>` 标签。
+
+3. `/@href`: 这部分从上面找到的 `<a>` 标签中提取 `href` 属性的值。
+
+4. `.getall()`: 这是 Scrapy 中的一个方法，用于从 XPath 查询结果中提取所有匹配项的值。在这个例子中，它将会提取所有符合条件的 `href` 属性值。
+
+总的来说，这个特定的代码片段是用来提取网页中所有包含“image”字样在其 href 属性中的 `<a>` 标签的 href 值。<br>
+
 ```bash
 >>> response.css("a[href*=image]::attr(href)").getall()
 ['image1.html',
@@ -1140,6 +1165,27 @@ True
 'image4.html',
 'image5.html']
 ```
+
+`.css("a[href*=image]::attr(href)")` 是一个CSS选择器。这里的意思是：“选择所有 `href` 属性中包含 'image' 字符串的 `<a>` 标签，并获取这些标签的 `href` 属性值。”<br>
+
+- `a` 表示选择所有的锚点（链接）标签 `<a>`。
+
+- `[href*=image]` 是一个属性选择器，用于选择那些 `href` 属性中包含“image”文本的 `<a>` 标签。星号 `*=` 表示属性值包含特定字符串。
+
+- `::attr(href)` 用于获取每个符合条件的 `<a>` 标签的 `href` 属性值。
+
+`.getall()` 是一个方法，用于获取所有匹配的元素的列表，而不只是第一个匹配项。<br>
+
+总的来说，这段代码的作用是从HTML中提取所有 `<a>` 标签的 `href` 属性值，这些标签的 `href` 属性包含字符串“image”。<br>
+
+根据上面提供的HTML示例，它会返回以下列表：<br>
+
+```python
+['image1.html', 'image2.html', 'image3.html', 'image4.html', 'image5.html']
+```
+
+这些是包含在`<div id='images'>`内部的五个图片链接的地址。<br>
+
 
 ```bash
 response.xpath('//a[contains(@href, "image")]/img/@src').getall()
@@ -1150,6 +1196,48 @@ response.xpath('//a[contains(@href, "image")]/img/@src').getall()
 'image5_thumb.jpg']
 ```
 
+### 拓展-XPath语法解释:
+
+```bash
+response.xpath('//a[contains(@href, "image")]/img/@src').getall()
+['image1_thumb.jpg',
+'image2_thumb.jpg',
+'image3_thumb.jpg',
+'image4_thumb.jpg',
+'image5_thumb.jpg']
+```
+
+这里根据上述语法详细解释这个XPath查询的各个组成部分。XPath是一种在XML和HTML文档中查找信息的语言。在上述例子中，XPath用于定位和提取特定的HTML元素。下面是各个部分的详细解释：<br>
+
+1. `//`
+
+- `//` 是XPath的语法，用于选择文档中的节点，而不考虑它们在文档中的位置。例如，`//div` 会选择文档中的所有`<div>`元素。
+
+2. `[]`
+
+- `[]` 用于**在XPath中添加条件**。它可以用来进一步细化你想要选择的节点。例如，`//a[condition]` 会选择满足`condition`条件的所有`<a>`元素。
+
+3. `contains`
+
+- `contains()` 是一个XPath函数，用于检查一个字符串是否包含另一个字符串。在你的例子中，`contains(@href, "image")` 用于检查`href`属性的值是否包含字符串“image”。
+
+4. `@`
+
+- `@` 在XPath中用于指代一个属性。例如，`@href` 表示选择`href`属性。
+
+5. `/`
+
+- `/` 在XPath中用作路径分隔符。它**用于选择直接的子节点**。例如，`div/a` 会选择所有`<div>`元素的直接子`<a>`元素。
+
+将这些组件放在一起理解：<br>
+
+- `//a[contains(@href, "image")]`：这个表达式选择文档中所有`<a>`元素，这些`<a>`元素的`href`属性中包含字符串“image”。`//` 表示在整个文档中搜索，`a` 指定要搜索的元素类型，`contains(@href, "image")` 是一个条件，表示仅选择那些`href`属性中包含“image”的`<a>`元素。
+
+- `/img/@src`：这个表达式是在上面找到的每个`<a>`元素的基础上进一步定位。它选择这些`<a>`元素的子元素`<img>`，并提取这些`<img>`元素的`src`属性。`/img` 指定选择`<img>`子元素，`@src` 表示提取这些`<img>`元素的`src`属性值。
+
+所以，整个表达式`//a[contains(@href, "image")]/img/@src` 会找到文档中所有其`href`属性包含“image”的`<a>`元素，然后从这些`<a>`元素的子元素`<img>`中提取`src`属性值。这通常是图片的URL。<br>
+
+
 ```bash
 response.css("a[href*=image] img::attr(src)").getall()
 ['image1_thumb.jpg',
@@ -1159,7 +1247,31 @@ response.css("a[href*=image] img::attr(src)").getall()
 'image5_thumb.jpg']
 ```
 
+命令解释:<br>
 
+1. `[]`（方括号）：用于属性选择器。当你需要选择具有特定属性的HTML元素时，你可以在元素名后使用方括号来指定属性。例如，在`a[href]`中，它选择所有具有`href`属性的`<a>`元素。
+
+2. `*=`：这是一种属性选择器的操作符，用于选择属性值中包含特定文本的元素。例如，在`[href*=image]`中，`*=`操作符用于选择那些`href`属性中包含"image"文本的元素。这意味着它会匹配任何`href`值中含有"image"这个子串的元素。
+
+3. `::`：用于伪元素选择器。在CSS中，伪元素用于添加一些特殊的效果或者选择某些部分的元素，而不是整个元素。例如，`::attr(src)`是一个伪元素选择器，用于获取元素的`src`属性。在你的代码示例中，`img::attr(src)`选择了所有`<img>`元素，并获取了它们的`src`属性值。
+
+所以，在你的Scrapy代码示例 `response.css("a[href*=image] img::attr(src)").getall()` 中，它首先选择所有`href`属性中包含"image"的`<a>`元素，然后在这些`<a>`元素中选择`<img>`元素，并提取这些`<img>`元素的`src`属性值。
+
+
+### 拓展--"::" 选择 "伪元素" :
+
+理解伪元素的概念对于掌握CSS选择器非常重要。伪元素是CSS的一个特性，它用于**指定页面上某个元素的某个部分或者添加特定的效果**。伪元素不是HTML文档中实际定义的元素，而是CSS创建的虚拟元素，用于应用样式或选择文档中的特定内容。<br>
+
+在Scrapy中，使用CSS选择器时，伪元素`::`的使用略有不同。在Scrapy中，伪元素主要用于提取元素的特定属性。例如：<br>
+
+- `::text`：这个伪元素用于选择元素的文本内容。例如，`p::text`会选择所有`<p>`标签中的文本(text)。
+
+- `::attr(attribute-name)`：这个伪元素用于提取元素的特定属性值。例如，`img::attr(src)`会选择所有`<img>`标签的`src`属性值。
+
+在你的Scrapy代码示例中，`img::attr(src)`表示选择每个`<img>`元素的`src`属性。这是一个非常有用的特性，因为它允许你直接提取HTML元素的属性，而不仅仅是元素本身。这在网络爬虫和数据提取中尤其有用，因为它提供了一种简洁的方法来获取诸如图像链接、页面链接等信息。<br>
+
+
+### CSS 选择器的扩展(Extensions to CSS Selectors):
 
 
 
