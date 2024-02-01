@@ -90,6 +90,10 @@ class QuotesSpider(scrapy.Spider):
             }
 
         next_page = response.css('li.next a::attr("href")').get()
+        """
+        如果存在下一页，则自动地继续请求下一页的内容。
+        当下一页的内容被下载后，用同样的`parse`方法来解析和提取信息。
+        """
         if next_page is not None:
             yield response.follow(next_page, self.parse)
 ```
