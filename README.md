@@ -32,6 +32,8 @@
     - [CSS 选择器的扩展(Extensions to CSS Selectors):](#css-选择器的扩展extensions-to-css-selectors)
       - [拓展-CSS中 `#` 用法解析:](#拓展-css中--用法解析)
     - [嵌套选择器(Nesting selectors):](#嵌套选择器nesting-selectors)
+  - [Item Pipeline(项目管道):](#item-pipeline项目管道)
+    - [Writing your own item pipeline(编写你自己的项目管道):](#writing-your-own-item-pipeline编写你自己的项目管道)
   - [html中的 `href` 是什么？](#html中的-href-是什么)
   - [scrapy进行爬虫时，为什么使用yield关键字？](#scrapy进行爬虫时为什么使用yield关键字)
   - [在爬虫中，CSS和XPath是什么关系？](#在爬虫中css和xpath是什么关系)
@@ -91,6 +93,10 @@ class QuotesSpider(scrapy.Spider):
             }
 
         next_page = response.css('li.next a::attr("href")').get()
+        """
+        如果存在下一页，则自动地继续请求下一页的内容。
+        当下一页的内容被下载后，用同样的`parse`方法来解析和提取信息。
+        """
         if next_page is not None:
             yield response.follow(next_page, self.parse)
 ```
@@ -1387,6 +1393,70 @@ exists. Use ``default=''`` if you always want a string:
 ```
 
 ### 嵌套选择器(Nesting selectors):
+
+
+## Item Pipeline(项目管道):
+
+After an item has been scraped by a spider, it is sent to the Item Pipeline which processes it through several components(组件) that are executed sequentially(按顺序).<br>
+
+在一个项目被爬虫抓取之后，它会被发送到项目管道，在那里它会通过几个依次执行的组件进行处理。🚀🚀🚀<br>
+
+Each item pipeline component (sometimes referred as just “Item Pipeline”) is a Python class that implements(实现；实施；执行) a simple method. They receive(接收) an item and perform an action(操作) over it, also deciding if the item should continue through the pipeline or be dropped and no longer processed.<br>
+
+每个项目管道组件（有时仅称为“项目管道”）是一个实现了简单方法的Python类。它们接收一个项目并对其执行操作，同时决定该项目是否应该继续通过管道或被丢弃不再处理。<br>
+
+Typical uses of item pipelines are:<br>
+
+项目管道的典型用途包括：<br>
+
+- cleansing HTML data(清洗HTML数据)
+
+- validating(确认；证实；验证) scraped data (checking that the items contain certain fields)(验证抓取的数据（检查项目是否包含特定字段）)
+
+- checking for duplicates (and dropping them)(检查重复项（并丢弃它们）)
+
+- storing(存储) the scraped item in a database(将抓取的项目存储在数据库中)
+
+### Writing your own item pipeline(编写你自己的项目管道):
+
+Each item pipeline component is a Python class that must implement the following method:<br>
+
+每个项目管道组件都是一个Python类，必须实现以下方法：<br>
+
+`process_item(self, item, spider)`<br>
+
+This method is called for every item pipeline component.<br>
+
+这个方法会被每个项目管道组件调用。<br>
+
+item is an [item object](https://docs.scrapy.org/en/latest/topics/items.html#item-types), see [Supporting All Item Types](https://docs.scrapy.org/en/latest/topics/items.html#supporting-item-types).<br>
+
+item是一个项目对象，请参阅支持所有项目类型。<br>
+
+`process_item()` must either: return an [item object](https://docs.scrapy.org/en/latest/topics/items.html#item-types), return a `Deferred` or raise a `DropItem` exception.<br>
+
+`process_item()` 必须：返回一个项目对象，返回一个 `Deferred`，或抛出一个 `DropItem` 异常。<br>
+
+Dropped items are no longer processed by further(后续的) pipeline components.<br>
+
+被丢弃的项目将不再由后续的管道组件处理。<br>
+
+Parameters(参数):<br>
+
+- item (item object) – the scraped item
+- item（项目对象）- 被抓取的项目
+
+- spider (Spider object) – the spider which scraped the item
+- spider（Spider对象）- 抓取该项目的爬虫
+
+笔者看到的 `pipelines.py` 中的代码如下:<br>
+
+```python
+class QuotesbotPipeline(object):
+    def process_item(self, item, spider):
+        return item
+```
+
 
 
 ## html中的 `href` 是什么？
