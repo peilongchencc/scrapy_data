@@ -344,4 +344,4 @@ scrapy crawl mdnice
 
 数据爬取后自动将数据写入MySQL，效果如下:<br>
 
-![](./mysql_xiaoguo.jpg)
+![](./mysql_result.jpg)
