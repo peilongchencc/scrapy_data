@@ -35,19 +35,28 @@ class MySpider(scrapy.Spider):
         article_date = response.meta['date']
         article_url = response.meta['url']
         
+        # 提取文章内容
         article_content = " ".join(response.xpath('//div[contains(@class,"trs_editor_view")]//text()').extract()).strip()
+        # 提取文章标题
         article_title = response.xpath('//div[@class="title"]/h3/text()').extract_first().strip()
-
+        
+        # 新增：提取文章目录
+        breadcrumbs = response.xpath('//div[@class="Position"]/span/a/text()').extract()
+        # 将目录列表转换为字符串，并用" > "连接
+        breadcrumbs_str = ' > '.join(breadcrumbs)
+        # 将目录添加到标题中
+        full_title = f"{breadcrumbs_str}: {article_title}"
+        
         # 定义文件名，这里使用文章标题作为文件名，确保文件名对于文件系统是安全的
-        # 可能需要对article_title进行一些处理，以确保它是有效的文件名
-        filename = f"{article_title}.json".replace('/', '_')  # 替换不合法字符
-
+        # 可能需要对full_title进行一些处理，以确保它是有效的文件名
+        filename = f"{full_title}.json".replace('/', '_').replace(':', '_')  # 替换不合法字符
+        
         # 构造要保存的数据
         data = {
             "page_content": article_content,
             "metadata": {
                 "source": article_url, 
-                "title": article_title, 
+                "title": full_title,  # 使用包含目录的完整标题
                 # "date": article_date    # 时间字段可用可不用
             }
         }
