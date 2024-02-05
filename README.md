@@ -60,6 +60,12 @@
     - [什么时候考虑使用更具体的路径？](#什么时候考虑使用更具体的路径)
     - [示例](#示例)
     - [结论](#结论)
+  - [`allowed_domains` 和 `response.follow` 用法解析:](#allowed_domains-和-responsefollow-用法解析)
+    - [`allowed_domains`](#allowed_domains)
+      - [示例代码](#示例代码)
+      - [疑惑点解答:](#疑惑点解答)
+    - [`response.follow`](#responsefollow)
+      - [示例代码](#示例代码-1)
 
 
 ## Scrapy概览:
@@ -1759,3 +1765,82 @@ for news in response.xpath('//div[@class="news"]/a'):
 直接使用如`'div.news a'`或`'//div[@class="news"]/a'`这样的简化路径是常见且实用的做法，尤其是在目标数据相对容易定位的情况下。<br>
 
 但是，在面对复杂或特定需求的页面时，采用更具体的路径可能会更加有效。在实际应用中，最佳做法是根据页面的具体情况和需求灵活选择使用简化路径或具体路径。<br>
+
+
+## `allowed_domains` 和 `response.follow` 用法解析:
+
+Scrapy是一个快速的高级web爬虫框架，用于爬取网站并从页面中提取结构性数据。`allowed_domains` 和 `response.follow` 是Scrapy爬虫中常用的两个功能，下面我将分别解释它们的用途，并给出示例代码。<br>
+
+### `allowed_domains`
+
+`allowed_domains`是一个爬虫属性，它是一个域名列表。当Scrapy尝试跟随到一个URL时，如果URL的域名不在这个列表中，则该URL不会被爬取。这是一个可选属性，主要用于限制爬虫爬取的范围，防止爬虫跑偏到其他网站上去。<br>
+
+#### 示例代码
+
+```python
+import scrapy
+
+class MySpider(scrapy.Spider):
+    name = "my_spider"
+    allowed_domains = ["example.com"]
+    start_urls = [
+        "http://www.example.com/"
+    ]
+
+    def parse(self, response):
+        # 提取数据的代码
+        pass
+```
+
+在这个示例中，`allowed_domains`被设置为`["example.com"]`，这意味着Scrapy爬虫只会爬取`example.com`域名下的页面。<br>
+
+#### 疑惑点解答:
+
+可能有人问，`allowed_domains = ["example.com"]` 是否只需要写到爬虫的类属性中？爬虫中的函数中不需要出现？会自动检测？<br>
+
+是的，`allowed_domains`只需要在爬虫类的属性中定义一次，Scrapy框架会自动处理这个属性，并根据它来过滤请求。🚀🚀🚀<br>
+
+当你在爬虫中生成新的请求时，无论是通过 `start_urls` 属性自动发起的请求，还是在爬虫的回调函数中使用 `response.follow` 或 `scrapy.Request` 手动发起的请求，Scrapy都会检查这个请求的URL是否属于`allowed_domains`列表中的域名。如果不属于，这个请求将不会被执行。‼️‼️‼️<br>
+
+这意味着在爬虫的任何函数中，当你创建新的请求时，你不需要手动检查URL是否属于`allowed_domains`中的域名，Scrapy会自动为你做这个工作。这样可以让你更专注于页面的解析和数据的提取，而不用担心请求会跑偏到其他不相关的网站。<br>
+
+例如：<br>
+
+```python
+class MySpider(scrapy.Spider):
+    name = "example_spider"
+    allowed_domains = ["example.com"]  # 只需要在这里定义
+    start_urls = ["http://www.example.com/"]
+
+    def parse(self, response):
+        # 爬虫逻辑和页面解析
+        yield response.follow("/some/path", self.some_callback)  # 不需要额外检查URL的域名
+
+    def some_callback(self, response):
+        # 进一步的处理逻辑
+        pass
+```
+
+在上面的代码中，`allowed_domains` 被定义为 `["example.com"]`，这样Scrapy就会**自动过滤**掉不属于 `example.com` 域的请求。这包括从 `start_urls` 自动发起的请求和在 `parse` 方法及其他回调方法中手动发起的请求。<br>
+
+### `response.follow`
+
+`response.follow` 是Scrapy的 `Response` 对象的一个方法，用于根据链接（URL或链接文本）生成一个跟进的请求（`Request`对象）。<br>
+
+`response.follow`自动处理链接的URL编码和域名过滤，是生成爬取下一个页面请求的便捷方式。<br>
+
+#### 示例代码
+
+```python
+def parse(self, response):
+    for href in response.css('a::attr(href)'):
+        yield response.follow(href, self.parse_page)
+
+def parse_page(self, response):
+    # 提取单个页面的数据的代码
+    pass
+```
+
+在这个示例中，`parse` 方法首先从当前页面提取所有的链接，然后使用 `response.follow` 来生成对这些链接的跟进请求，并指定 `parse_page` 作为回调函数来处理这些请求得到的响应。这样，Scrapy就可以递归地爬取网站上的所有链接了。<br>
+
+`response.follow` **可以接受绝对或相对URL**，并且如果你设置了 `allowed_domains` ，Scrapy还会自动过滤掉不在这个域名列表中的链接，从而确保爬虫的爬取行为符合预期。<br>
