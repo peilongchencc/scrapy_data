@@ -60,13 +60,15 @@ class MySpider(scrapy.Spider):
         article_date = response.meta['date']
         article_url = response.meta['url']
 
-        # 提取文章内容
-        article_content = " ".join(response.xpath('//div[contains(@class,"trs_editor_view")]//text()').extract()).strip()
+        # 由于文章的属性可能为 "trs_editor"、"trs_editor_view"、"Trs_editor"、"TRS_Editor"等多种情况
+        # 需要以不区分大小写的方式，提取文章内容
+        article_content = " ".join(response.xpath(
+            '//div[contains(translate(@class, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "trs_editor")]//*[not(self::style) and not(self::script)]//text()'
+            ).extract()).strip()
 
         # 由于网页结构不统一，采用模糊匹配检索
         article_field = response.css('.title ::text').get()
         article_title = article_field.strip()
-        logger.info(f"提取的文章为：{article_title}")
 
         # 提取文章目录
         breadcrumbs = response.xpath('//div[@class="Position"]/span/a/text()').extract()

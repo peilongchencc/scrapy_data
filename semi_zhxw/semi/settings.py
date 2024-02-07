@@ -35,7 +35,7 @@ ROBOTSTXT_OBEY = True
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 2
+DOWNLOAD_DELAY = 1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -97,9 +97,9 @@ ITEM_PIPELINES = {
 # 启用自动限速
 AUTOTHROTTLE_ENABLED = True
 # 初始下载延迟
-AUTOTHROTTLE_START_DELAY = 2
+AUTOTHROTTLE_START_DELAY = 1
 # 最大下载延迟，防止延迟过长
-AUTOTHROTTLE_MAX_DELAY = 20
+AUTOTHROTTLE_MAX_DELAY = 2
 # 启用显示自动限速的调试信息
 AUTOTHROTTLE_DEBUG = True
 
