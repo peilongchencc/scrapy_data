@@ -56,11 +56,11 @@ scrapy安装完成后，`cd` 到 `scrapy.cfg` 同级目录，然后终端运行�
 scrapy crawl semi
 ```
 
-指令运行后，json文件会输出到 `zhxw` (综合新闻) 文件夹下。同时会在 `scrapy.cfg` 同级目录下创建 `scrapy_log_custom.py`、`scrapy_log_default.py`文件。<br>
+指令运行后，json文件会输出到 `zhxw` (综合新闻) 文件夹下。同时会在 `scrapy.cfg` 同级目录下创建 `scrapy_log_custom.txt`、`scrapy_log_default.txt`文件。<br>
 
-- `scrapy_log_custom.py`: 记录自定义log信息。
+- `scrapy_log_custom.txt`: 记录自定义log信息。
 
-- `scrapy_log_default.py`: 记录scrapy默认信息。
+- `scrapy_log_default.txt`: 记录scrapy默认信息。
 
 
 ## 备注:
