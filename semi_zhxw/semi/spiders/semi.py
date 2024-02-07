@@ -22,7 +22,7 @@ class MySpider(scrapy.Spider):
         for item in response.xpath('//td[@class="fw_t"]/..'):
             
             date_field = item.xpath('./td[@class="fw_s"]/text()')
-            logger.info(f"提取出的时间字段为：{date_field}")
+            # logger.info(f"提取出的时间字段为：{date_field}")
             
             # 提取并处理时间信息
             date_str = date_field.extract_first().strip()
@@ -53,7 +53,7 @@ class MySpider(scrapy.Spider):
             next_pages = response.css('div.t_page a::attr(href)').extract()
             for page_url in next_pages:
                 full_page_url = response.urljoin(page_url.strip())
-                logger.info(f"下一页的url为：{full_page_url}")
+                # logger.info(f"下一页的url为：{full_page_url}")
                 yield scrapy.Request(full_page_url, callback=self.parse)
 
     def parse_article(self, response):

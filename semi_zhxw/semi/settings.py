@@ -16,7 +16,10 @@ NEWSPIDER_MODULE = "semi.spiders"
 OUTPUT_DIR_OF_ZHXW = './zhxw'
 
 # 日志文件配置
-LOG_FILE = 'spider_log_default.txt'
+# scrapy默认日志路径
+LOG_FILE = 'scrapy_log_default.txt'
+# 自定义日志文件的路径
+CUSTOM_LOG_FILE = 'scrapy_log_custom.txt'
 # 日志级别配置
 LOG_LEVEL = 'DEBUG'  # scrapy默认将DEBUG级别日志输出到终端，可以自己根据需要调整为INFO, WARNING等
 # 终端是否输出日志，False为输出，True为不输出。
