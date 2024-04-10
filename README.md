@@ -66,6 +66,8 @@
       - [疑惑点解答:](#疑惑点解答)
     - [`response.follow`](#responsefollow)
       - [示例代码](#示例代码-1)
+  - [Common Practices(常用做法):](#common-practices常用做法)
+    - [Run Scrapy from a script(从脚本中运行Scrapy):](#run-scrapy-from-a-script从脚本中运行scrapy)
 
 
 ## Scrapy概览:
@@ -1849,3 +1851,133 @@ def parse_page(self, response):
 在这个示例中，`parse` 方法首先从当前页面提取所有的链接，然后使用 `response.follow` 来生成对这些链接的跟进请求，并指定 `parse_page` 作为回调函数来处理这些请求得到的响应。这样，Scrapy就可以递归地爬取网站上的所有链接了。<br>
 
 `response.follow` **可以接受绝对或相对URL**，并且如果你设置了 `allowed_domains` ，Scrapy还会自动过滤掉不在这个域名列表中的链接，从而确保爬虫的爬取行为符合预期。<br>
+
+
+## Common Practices(常用做法):
+
+> "Common Practices" 确实可以被理解为 "常见练习"，但在上下文中，它更多地指代了在使用 Scrapy（一个Python爬虫框架）时常见的做法或惯例。
+
+This section documents common practices when using Scrapy. These are things that cover many topics and don’t often fall into any other specific section.<br>
+
+本节记录了在使用Scrapy时的常用做法。这些内容涵盖了许多主题，通常不属于其他特定部分。<br>
+
+### Run Scrapy from a script(从脚本中运行Scrapy):
+
+> 从脚本中运行Scrapy即从py文件中运行Scrapy项目，而不是通过命令行。
+
+You can use the [API](https://docs.scrapy.org/en/latest/topics/api.html#topics-api) to run Scrapy from a script, instead of the typical way of running Scrapy via `scrapy crawl`.<br>
+
+您可以使用API从脚本中运行Scrapy，而不是通过`scrapy crawl`的典型方式来运行Scrapy。<br>
+
+Remember that Scrapy is built on top of the Twisted asynchronous networking library, so you need to run it inside the Twisted reactor.<br>
+
+请记住，Scrapy是建立在Twisted异步网络库之上的，因此您需要在Twisted反应器内运行它。<br>
+
+The first utility(实用工具) you can use to run your spiders is `scrapy.crawler.CrawlerProcess`. <br>
+
+您可以使用的第一个实用工具是`scrapy.crawler.CrawlerProcess`。<br>
+
+This class will start a Twisted reactor for you, configuring the logging and setting shutdown handlers. This class is the one used by all Scrapy commands.<br>
+
+这个类会为您启动一个Twisted反应器，配置日志并设置关闭处理程序。这个类是所有Scrapy命令使用的类。<br>
+
+Here’s an example showing how to run a single spider with it.<br>
+
+以下是一个示例，展示了如何使用它来运行单个爬虫。<br>
+
+```python
+import scrapy
+from scrapy.crawler import CrawlerProcess
+
+
+class MySpider(scrapy.Spider):
+    # Your spider definition
+    ...
+
+
+process = CrawlerProcess(
+    settings={
+        "FEEDS": {
+            "items.json": {"format": "json"},
+        },
+    }
+)
+
+process.crawl(MySpider)
+process.start()  # the script will block here until the crawling is finished
+```
+
+Define settings within dictionary in `CrawlerProcess`. Make sure to check `CrawlerProcess` documentation to get acquainted(使熟悉、使了解) with its usage details.<br>
+
+在 `CrawlerProcess` 中以字典形式定义设置。务必查阅 `CrawlerProcess` 文档，以熟悉其用法细节。<br>
+
+If you are inside a Scrapy project there are some additional helpers you can use to import those components within the project. <br>
+
+如果您在一个 Scrapy 项目内部，有一些额外的辅助工具可用于在项目内导入这些组件。<br>
+
+You can automatically import your spiders passing their name to `CrawlerProcess`, and use `get_project_settings` to get a `Settings` instance with your project settings.<br>
+
+您可以通过将它们的名称传递给 `CrawlerProcess` 自动导入您的爬虫，并使用 `get_project_settings` 来获取具有项目设置的 `Settings` 实例。<br>
+
+What follows is a working example of how to do that, using the [testspiders](https://github.com/scrapinghub/testspiders) project as example.<br>
+
+接下来是一个工作示例，演示了如何做到这一点，以 [testspiders](https://github.com/scrapinghub/testspiders) 项目为例。<br>
+
+```python
+from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
+
+process = CrawlerProcess(get_project_settings())
+
+# 'followall' is the name of one of the spiders of the project.
+# the code in https://github.com/scrapinghub/testspiders/blob/master/testspiders/spiders/followall.py
+process.crawl("followall", domain="scrapy.org")
+process.start()  # the script will block here until the crawling is finished
+```
+
+请将下列内容翻译为地道的中文：
+
+There’s another Scrapy utility(实用工具) that provides more control over the crawling process: `scrapy.crawler.CrawlerRunner`. <br>
+
+还有另一个 Scrapy 实用工具可以更好地控制爬取过程：`scrapy.crawler.CrawlerRunner`。<br>
+
+This class is a thin wrapper that encapsulates(封装) some simple helpers to run multiple crawlers, but it won’t start or interfere(干扰、干涉) with existing reactors in any way.<br>
+
+这个类是一个薄包装器，封装了一些简单的帮助程序来运行多个爬虫，但它不会以任何方式启动或干扰现有的反应器。<br>
+
+Using this class the reactor should be explicitly(明确地、清楚地、明显地) run after scheduling your spiders. <br>
+
+使用这个类后，应该在安排爬虫后显式运行反应器。<br>
+
+It’s recommended you use `CrawlerRunner` instead of `CrawlerProcess` if your application is already using Twisted and you want to run Scrapy in the same reactor.<br>
+
+如果您的应用程序已经在使用 Twisted 并且想要在相同的反应器中运行 Scrapy，则建议您使用 `CrawlerRunner` 而不是 `CrawlerProcess。`
+
+Note that you will also have to shutdown the Twisted reactor yourself after the spider is finished. This can be achieved by adding callbacks to he deferred(一个延迟对象或延迟执行的操作) returned by the `CrawlerRunner.crawl` method.<br>
+
+请注意，您还必须在爬虫完成后自行关闭 Twisted 反应器。这可以通过向 `CrawlerRunner.crawl` 方法返回的延迟添加回调来实现。<br>
+
+Here’s an example of its usage, along with a callback to manually stop the reactor after `MySpider` has finished running.<br>
+
+以下是其使用示例，以及一个回调函数，用于在 `MySpider` 运行完成后手动停止反应器。<br>
+
+```python
+from twisted.internet import reactor
+import scrapy
+from scrapy.crawler import CrawlerRunner
+from scrapy.utils.log import configure_logging
+
+
+class MySpider(scrapy.Spider):
+    # Your spider definition
+    ...
+
+
+configure_logging({"LOG_FORMAT": "%(levelname)s: %(message)s"})
+runner = CrawlerRunner()
+
+d = runner.crawl(MySpider)
+d.addBoth(lambda _: reactor.stop())
+reactor.run()  # the script will block here until the crawling is finished
+```
+
