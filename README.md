@@ -1935,8 +1935,6 @@ process.crawl("followall", domain="scrapy.org")
 process.start()  # the script will block here until the crawling is finished
 ```
 
-请将下列内容翻译为地道的中文：
-
 There’s another Scrapy utility(实用工具) that provides more control over the crawling process: `scrapy.crawler.CrawlerRunner`. <br>
 
 还有另一个 Scrapy 实用工具可以更好地控制爬取过程：`scrapy.crawler.CrawlerRunner`。<br>
